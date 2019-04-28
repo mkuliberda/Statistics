@@ -23,24 +23,26 @@ today=datetime.datetime.now()
 latestLog = '/home/pi/Desktop/Environment/Environment_' + str(today.day) + '_' + str(today.month) + '_' + str(today.year) + '.csv'
 global logsCount
 global logs
-#print(latestLog)
+global plots
+plots = 'standard'
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--today_only', help='plot only todays log',
+                    action='store_true')
+parser.add_argument('--all', help='plot all avbl logs',
+                    action='store_true')
+  
+args = parser.parse_args()
+if args.today_only:
+    plots = 'today'
+elif args.all:
+    plots = 'all'
+
 
 class envStatistics(object):
-
-    
-    def __init__(self):
-        self._running = True
-
-    def terminate(self):
-        self._running = False
-                
-    def run(self):
-
-        while self._running:
-            print("running...")
-            
+                            
     def readLogs(self):
-        
+
         global logsCount
         global logs
         
@@ -66,11 +68,20 @@ class envStatistics(object):
             print('no logs available')
             
     def getLogsList(self):
+
+        global plots
         tempList = glob.glob("/home/pi/Desktop/Environment/*.csv")
-        #print(tempList)
-        if latestLog in tempList:
-            tempList.remove(latestLog)
-        return tempList
+
+        if plots == 'standard':
+            if latestLog in tempList:
+                tempList.remove(latestLog)
+                return tempList
+            
+        elif plots == 'today':
+            return [latestLog]
+        
+        elif plots == 'all':
+            return tempList         
 
     def createPlots(self):
         #print(nbr)
@@ -81,25 +92,29 @@ class envStatistics(object):
             plot.subplot(221)
             plot.xlabel('time [hhmmss]')
             plot.ylabel('pressure [hPa]')
-            plot.plot(timeh[i],pressure[i])
+            plot.scatter(timeh[i],pressure[i])
+            plot.plot(timeh[i],pressure[i],'C1')
 
             plot.subplot(222)
             plot.xlabel('time [hhmmss]')
             plot.ylabel('temperature [C]')
-            plot.plot(timeh[i],temperature[i])
+            plot.scatter(timeh[i],temperature[i])
+            plot.plot(timeh[i],temperature[i],'C3')
 
             plot.subplot(223)
             plot.xlabel('time [hhmmss]')
             plot.ylabel('humidity [%]')
-            plot.plot(timeh[i],humidity[i])
+            plot.scatter(timeh[i],humidity[i])
+            plot.plot(timeh[i],humidity[i],'C2')
 
             plot.subplot(224)
             plot.xlabel('time [hhmmss]')
             plot.ylabel('dew point [C]')
-            plot.plot(timeh[i],dew_point[i])
+            plot.scatter(timeh[i],dew_point[i])
+            plot.plot(timeh[i],dew_point[i],'C4')
 
             plot.subplots_adjust(top=0.92, bottom=0.08, left=0.10, right=0.95, hspace=0.25, wspace=0.35)
-            plot.style.use('classic')
+            #plot.style.use('classic')
         plot.show(block=False)
 
 test = envStatistics()

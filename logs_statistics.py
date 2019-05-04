@@ -1,33 +1,24 @@
 #!/usr/bin/python
-
-# Import packages
-import os
+# import necessary packages
 import numpy as np
+import os
+import pandas as pd
+import matplotlib.pyplot as plot
 import argparse
 import sys
 import glob
 import datetime
 import time
-import matplotlib.pyplot as plot
 import matplotlib
 import csv
 from pathlib import Path
-
-#logs format: (int)DDMMYY,(int)HHMMSS,(.2float)PRESSURE,(.2float)HUMIDITY,(0.2float)TEMPERATURE,(.2float)DEW_POINT
-
-timeh=[]
-pressure=[]
-humidity=[]
-temperature=[]
-dew_point=[]
+# prettier plotting with seaborn
+import seaborn as sns;
+import matplotlib.dates as mdates
+import matplotlib.ticker as tick
 
 
-today=datetime.datetime.now()
-latestLog = '/home/pi/Desktop/Environment/Environment_' + str(today.day) + '_' + str(today.month) + '_' + str(today.year) + '.csv'
-global logsCount
-global logs
-global plots
-plots = 'standard'
+plots_range = 'standard'
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--today_only', help='plot only todays log',
@@ -37,100 +28,140 @@ parser.add_argument('--all', help='plot all avbl logs',
   
 args = parser.parse_args()
 if args.today_only:
-    plots = 'today'
+    plots_range = 'today'
 elif args.all:
-    plots = 'all'
+    plots_range = 'all'
 
 
-class envStatistics(object):
-                            
-    def readLogs(self):
+# make figures plot inline
+plot.ion()
 
-        global logsCount
-        global logs
+# set standard plot parameters for uniform plotting
+#plot.rcParams['figure.figsize'] = (6, 6)
+
+sns.set(font_scale=1.1)
+sns.set_style("whitegrid")
+
+def getLogsList(plots = 'standard'):
+
+    today=datetime.datetime.now()
+    temp_list = glob.glob("/home/pi/Desktop/Environment/*.csv")
+    today_log = '/home/pi/Desktop/Environment/Environment_' + str(today.day) + '_' + str(today.month) + '_' + str(today.year) + '.csv'
+
+
+    if plots == 'standard':
+        if today_log in temp_list:
+            temp_list.remove(today_log)
+            return temp_list
         
-        logs = self.getLogsList()
-        logsCount = len(logs)
+    elif plots == 'today':
+        return [today_log]
+    
+    elif plots == 'all':
+        return temp_list         
 
-        if logsCount > 0:
-            for i in range(logsCount):
-                timeh.append([])
-                pressure.append([])
-                humidity.append([])
-                temperature.append([])
-                dew_point.append([])
-                with open(logs[i],'r') as csvfile:
-                #data_initial = open(logs[i], "rU")
-                #plots = list(csv.reader((line.replace('\0','') for line in data_initial)))
-                    plots = list(csv.reader(csvfile, delimiter=','))
-                    for row in plots:
-                        timeh[i].append(row[0])
-                        pressure[i].append(float(row[1]))
-                        humidity[i].append(float(row[2]))
-                        temperature[i].append(float(row[3]))
-                        dew_point[i].append(float(row[4]))
-        else:
-            print('no logs available')
-            
-    def getLogsList(self):
+def createPlots(files):
 
-        global plots
-        tempList = glob.glob("/home/pi/Desktop/Environment/*.csv")
+    logs = []
+    # import file into pandas dataframe
+    for i in range(len(files)):
+        boulder = pd.read_csv(files[i],parse_dates = ['Time'],index_col = ['Time'])
+        logs.append(boulder)
+        # just for checking and testing, to be removed in future
+        #print(logs[i].dtypes)
 
-        if plots == 'standard':
-            if latestLog in tempList:
-                tempList.remove(latestLog)
-                return tempList
-            
-        elif plots == 'today':
-            return [latestLog]
+
+    timeFmt = mdates.DateFormatter('%H:%M')
+    pressFmt = tick.FormatStrFormatter('%.2f')
+    temp_humFmt = tick.FormatStrFormatter('%.1f')
+
+
+    for i in range(len(logs)):
+        # create the plot space upon which to plot the data
+        fig = plot.figure(i, figsize=(20,20))
+        plot.suptitle(files[i])
+
+
+        #fig, ax = plot.subplots(figsize = (20,20))
+        ax1 = fig.add_subplot(2,2,1)
+        ax2 = fig.add_subplot(2,2,2)
+        ax3 = fig.add_subplot(2,2,3)
+        ax4 = fig.add_subplot(2,2,4)
+
+
+        # add the x-axis and the y-axis to the plot
+        ax1.plot(logs[i].index.values,
+                logs[i]['Pressure'],
+                color = 'blue')
+        ax1.scatter(logs[i].index.values,
+                    logs[i]['Pressure'])
+
+        ax1.xaxis.set_major_formatter(timeFmt)
+        ax1.yaxis.set_major_formatter(pressFmt)
+
+        # rotate tick labels
+        plot.setp(ax1.get_xticklabels(), rotation=45)
+
+        # set title and labels for axes
+        ax1.set(xlabel="Time",
+               ylabel="Pressure");
+
+        ax2.plot(logs[i].index.values,
+                logs[i]['Humidity'],
+             color = 'green')
+        ax2.scatter(logs[i].index.values,
+                    logs[i]['Humidity'])
+
+        ax2.xaxis.set_major_formatter(timeFmt)
+        ax2.yaxis.set_major_formatter(temp_humFmt)
+
+
+        # rotate tick labels
+        plot.setp(ax2.get_xticklabels(), rotation=45)
+
+        # set title and labels for axes
+        ax2.set(xlabel="Time",
+               ylabel="Humidity");
+
+
+        ax3.plot(logs[i].index.values,
+                logs[i]['Temperature'],
+                color = 'red')
+        ax3.scatter(logs[i].index.values,
+                    logs[i]['Temperature'])
+
+        ax3.xaxis.set_major_formatter(timeFmt)
+        ax3.yaxis.set_major_formatter(temp_humFmt)
+
+        # rotate tick labels
+        plot.setp(ax3.get_xticklabels(), rotation=45)
+
+        # set title and labels for axes
+        ax3.set(xlabel="Time",
+               ylabel="Temperature");
+
+        ax4.plot(logs[i].index.values,
+                logs[i]['Dew_point'],
+                color = 'purple')
+        ax4.scatter(logs[i].index.values,
+                    logs[i]['Dew_point'])
+
+        ax4.xaxis.set_major_formatter(timeFmt)
+        ax4.yaxis.set_major_formatter(temp_humFmt)
+
+        # rotate tick labels
+        plot.setp(ax4.get_xticklabels(), rotation=45)
+
+        # set title and labels for axes
+        ax4.set(xlabel="Time",
+               ylabel="Dew point");
         
-        elif plots == 'all':
-            return tempList         
-
-    def createPlots(self):
-        for i in range(logsCount):
-            plot.figure(i, figsize=(16, 8))
-            plot.suptitle(logs[i])
-
-            plot.subplot(221)
-            plot.xlabel('time [hhmmss]')
-            plot.ylabel('pressure [hPa]')
-            plot.scatter(timeh[i],pressure[i])
-            plot.plot(timeh[i],pressure[i],'C1')
-            plot.gcf().autofmt_xdate()
-
-            plot.subplot(222)
-            plot.xlabel('time [hhmmss]')
-            plot.ylabel('temperature [C]')
-            plot.scatter(timeh[i],temperature[i])
-            plot.plot(timeh[i],temperature[i],'C3')
-
-            plot.subplot(223)
-            plot.xlabel('time [hhmmss]')
-            plot.ylabel('humidity [%]')
-            plot.scatter(timeh[i],humidity[i])
-            plot.plot(timeh[i],humidity[i],'C2')
-
-            plot.subplot(224)
-            plot.xlabel('time [hhmmss]')
-            plot.ylabel('dew point [C]')
-            plot.scatter(timeh[i],dew_point[i])
-            plot.plot(timeh[i],dew_point[i],'C4')
-
-            plot.subplots_adjust(top=0.92, bottom=0.08, left=0.10, right=0.95, hspace=0.25, wspace=0.35)
-            #plot.style.use('classic')
+        plot.subplots_adjust(top=0.92, bottom=0.08, left=0.10, right=0.95, hspace=0.25, wspace=0.35)
         plot.show(block=False)
 
-stats = envStatistics()
-stats.readLogs()
-stats.createPlots()
-print(today)
+paths = getLogsList(plots_range)
+createPlots(paths)
+
 input("Press Enter to exit ...")
 exit()
 
-
-            
-        
-                
-  

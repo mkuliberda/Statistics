@@ -9,8 +9,11 @@ import glob
 import datetime
 import time
 import matplotlib.pyplot as plot
+import matplotlib
 import csv
 from pathlib import Path
+
+#logs format: (int)DDMMYY,(int)HHMMSS,(.2float)PRESSURE,(.2float)HUMIDITY,(0.2float)TEMPERATURE,(.2float)DEW_POINT
 
 timeh=[]
 pressure=[]
@@ -57,13 +60,15 @@ class envStatistics(object):
                 temperature.append([])
                 dew_point.append([])
                 with open(logs[i],'r') as csvfile:
+                #data_initial = open(logs[i], "rU")
+                #plots = list(csv.reader((line.replace('\0','') for line in data_initial)))
                     plots = list(csv.reader(csvfile, delimiter=','))
                     for row in plots:
-                        timeh[i].append(int(row[1]))
-                        pressure[i].append(float(row[2]))
-                        humidity[i].append(float(row[3]))
-                        temperature[i].append(float(row[4]))
-                        dew_point[i].append(float(row[5]))
+                        timeh[i].append(row[0])
+                        pressure[i].append(float(row[1]))
+                        humidity[i].append(float(row[2]))
+                        temperature[i].append(float(row[3]))
+                        dew_point[i].append(float(row[4]))
         else:
             print('no logs available')
             
@@ -84,7 +89,6 @@ class envStatistics(object):
             return tempList         
 
     def createPlots(self):
-        #print(nbr)
         for i in range(logsCount):
             plot.figure(i, figsize=(16, 8))
             plot.suptitle(logs[i])
@@ -94,6 +98,7 @@ class envStatistics(object):
             plot.ylabel('pressure [hPa]')
             plot.scatter(timeh[i],pressure[i])
             plot.plot(timeh[i],pressure[i],'C1')
+            plot.gcf().autofmt_xdate()
 
             plot.subplot(222)
             plot.xlabel('time [hhmmss]')
@@ -117,10 +122,10 @@ class envStatistics(object):
             #plot.style.use('classic')
         plot.show(block=False)
 
-test = envStatistics()
-test.readLogs()
-test.createPlots()
-
+stats = envStatistics()
+stats.readLogs()
+stats.createPlots()
+print(today)
 input("Press Enter to exit ...")
 exit()
 

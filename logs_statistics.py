@@ -74,6 +74,8 @@ def createPlots(files):
     timeFmt = mdates.DateFormatter('%H:%M')
     pressFmt = tick.FormatStrFormatter('%.2f')
     temp_humFmt = tick.FormatStrFormatter('%.1f')
+    pmFmt = tick.FormatStrFormatter('%d')
+    C=20 #TODO color on scatter plots not working now
 
 
     for i in range(len(logs)):
@@ -94,7 +96,7 @@ def createPlots(files):
                 logs[i]['Pressure'],
                 color = 'blue')
         ax1.scatter(logs[i].index.values,
-                    logs[i]['Pressure'])
+                    logs[i]['Pressure'], C)
 
         ax1.xaxis.set_major_formatter(timeFmt)
         ax1.yaxis.set_major_formatter(pressFmt)
@@ -104,13 +106,16 @@ def createPlots(files):
 
         # set title and labels for axes
         ax1.set(xlabel="Time",
-               ylabel="Pressure");
+               ylabel="Pressure [hPa]");
+
+
+        
 
         ax2.plot(logs[i].index.values,
                 logs[i]['Humidity'],
-             color = 'green')
+                 color = 'green')
         ax2.scatter(logs[i].index.values,
-                    logs[i]['Humidity'])
+                    logs[i]['Humidity'], C)
 
         ax2.xaxis.set_major_formatter(timeFmt)
         ax2.yaxis.set_major_formatter(temp_humFmt)
@@ -121,40 +126,72 @@ def createPlots(files):
 
         # set title and labels for axes
         ax2.set(xlabel="Time",
-               ylabel="Humidity");
+               ylabel="Humidity [%]");
+
+
+        
 
 
         ax3.plot(logs[i].index.values,
                 logs[i]['Temperature'],
-                color = 'red')
+                color = 'red', label = 'Temperature')
+        ax3.plot(logs[i].index.values,
+                logs[i]['Dew_point'],
+                color = 'purple', label = 'Dew point')
+
         ax3.scatter(logs[i].index.values,
-                    logs[i]['Temperature'])
+                    logs[i]['Temperature'], C, label = '_Temperature')
+        ax3.scatter(logs[i].index.values,
+                    logs[i]['Dew_point'], C, label = '_Dew point')
+
 
         ax3.xaxis.set_major_formatter(timeFmt)
         ax3.yaxis.set_major_formatter(temp_humFmt)
+        legend = ax3.legend(loc='upper right', shadow=True)
+
 
         # rotate tick labels
         plot.setp(ax3.get_xticklabels(), rotation=45)
 
         # set title and labels for axes
         ax3.set(xlabel="Time",
-               ylabel="Temperature");
+               ylabel="Temperature, Dew point [C]");
+
+
+        
 
         ax4.plot(logs[i].index.values,
-                logs[i]['Dew_point'],
-                color = 'purple')
+                logs[i]['PM1'],
+                color = 'yellow', label = 'PM1')
+        ax4.plot(logs[i].index.values,
+                logs[i]['PM2.5'],
+                color = 'orange', label = 'PM2.5')
+        ax4.plot(logs[i].index.values,
+                logs[i]['PM10'],
+                color = 'chocolate', label = 'PM10')
+        
         ax4.scatter(logs[i].index.values,
-                    logs[i]['Dew_point'])
+                    logs[i]['PM1'], C, label = '_PM1')
+        ax4.scatter(logs[i].index.values,
+                    logs[i]['PM2.5'], C, label = '_PM2.5')
+        ax4.scatter(logs[i].index.values,
+                    logs[i]['PM10'], C, label = '_PM10')
+
 
         ax4.xaxis.set_major_formatter(timeFmt)
-        ax4.yaxis.set_major_formatter(temp_humFmt)
+        ax4.yaxis.set_major_formatter(pmFmt)
+        legend = ax4.legend(loc='upper right', shadow=True)
+
 
         # rotate tick labels
         plot.setp(ax4.get_xticklabels(), rotation=45)
 
         # set title and labels for axes
         ax4.set(xlabel="Time",
-               ylabel="Dew point");
+               ylabel="PM1, PM2.5, PM10 [ug/m3]");
+
+
+        
         
         plot.subplots_adjust(top=0.92, bottom=0.08, left=0.10, right=0.95, hspace=0.25, wspace=0.35)
         plot.show(block=False)

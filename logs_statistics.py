@@ -84,7 +84,6 @@ def createPlots(files):
         plot.suptitle(files[i])
 
 
-        #fig, ax = plot.subplots(figsize = (20,20))
         ax1 = fig.add_subplot(2,2,1)
         ax2 = fig.add_subplot(2,2,2)
         ax3 = fig.add_subplot(2,2,3)

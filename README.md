@@ -1,5 +1,5 @@
 # Statistics
-Python code calculating statistics from supplied logs
+Python code calculating statistics and plotting data from supplied logs (WIP)
 
 usage: python3 logs_statistics.py
 --today_only 	-> process only log from today

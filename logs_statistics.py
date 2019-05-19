@@ -7,7 +7,7 @@ import matplotlib.pyplot as plot
 import argparse
 import sys
 import glob
-import datetime
+from datetime import datetime, timedelta
 import time
 import matplotlib
 import csv
@@ -21,14 +21,18 @@ import matplotlib.ticker as tick
 plots_range = 'standard'
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--today_only', help='plot only todays log',
+parser.add_argument('--today', help='plot only todays log',
+                    action='store_true')
+parser.add_argument('--yesterday', help='plot only yesterdays log',
                     action='store_true')
 parser.add_argument('--all', help='plot all avbl logs',
                     action='store_true')
   
 args = parser.parse_args()
-if args.today_only:
+if args.today:
     plots_range = 'today'
+elif args.yesterday:
+    plots_range = 'yesterday'
 elif args.all:
     plots_range = 'all'
 
@@ -44,10 +48,11 @@ sns.set_style("whitegrid")
 
 def getLogsList(plots = 'standard'):
 
-    today=datetime.datetime.now()
+    today=datetime.now()
     temp_list = glob.glob("/home/pi/Desktop/Environment/*.csv")
     today_log = '/home/pi/Desktop/Environment/Environment_' + str(today.day) + '_' + str(today.month) + '_' + str(today.year) + '.csv'
-
+    yest_temp = datetime.now() - timedelta(days=1)
+    yesterday_log = '/home/pi/Desktop/Environment/Environment_' + str(yest_temp.day) + '_' + str(yest_temp.month) + '_' + str(yest_temp.year) + '.csv'
 
     if plots == 'standard':
         if today_log in temp_list:
@@ -56,6 +61,10 @@ def getLogsList(plots = 'standard'):
         
     elif plots == 'today':
         return [today_log]
+
+    elif plots == 'yesterday':
+        return [yesterday_log]
+
     
     elif plots == 'all':
         return temp_list         

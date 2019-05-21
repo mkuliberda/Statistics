@@ -16,6 +16,7 @@ from pathlib import Path
 import seaborn as sns;
 import matplotlib.dates as mdates
 import matplotlib.ticker as tick
+from matplotlib.widgets import CheckButtons
 
 
 plots_range = 'standard'
@@ -25,16 +26,23 @@ parser.add_argument('--today', help='plot only todays log',
                     action='store_true')
 parser.add_argument('--yesterday', help='plot only yesterdays log',
                     action='store_true')
+parser.add_argument('--path', dest='file', required=False, help='plot only specific log', type=lambda f: open(f))# action='store_true')
+
 parser.add_argument('--all', help='plot all avbl logs',
                     action='store_true')
-  
+
 args = parser.parse_args()
 if args.today:
     plots_range = 'today'
 elif args.yesterday:
     plots_range = 'yesterday'
+elif args.file.name is not None:
+    print(args.file.name)  # name of the file from the file handle
+    plots_range = 'yesterday'
 elif args.all:
     plots_range = 'all'
+
+
 
 
 # make figures plot inline
@@ -67,145 +75,163 @@ def getLogsList(plots = 'standard'):
 
     
     elif plots == 'all':
-        return temp_list         
+        return temp_list
 
-def createPlots(files):
-
-    logs = []
-    # import file into pandas dataframe
-    for i in range(len(files)):
-        boulder = pd.read_csv(files[i],parse_dates = ['Time'],index_col = ['Time'])
-        logs.append(boulder)
-        # just for checking and testing, to be removed in future
-        #print(logs[i].dtypes)
+def func(label):
+    index = labels.index(label)
+    lines[index].set_visible(not lines[index].get_visible())
+    plot.draw()
 
 
-    timeFmt = mdates.DateFormatter('%H:%M')
-    pressFmt = tick.FormatStrFormatter('%.2f')
-    temp_humFmt = tick.FormatStrFormatter('%.1f')
-    pmFmt = tick.FormatStrFormatter('%d')
-    C=20 #TODO color on scatter plots not working now
+files = getLogsList(plots_range)
+
+#def createPlots(files):
+
+logs = []
+# import file into pandas dataframe
+for i in range(len(files)):
+    boulder = pd.read_csv(files[i],parse_dates = ['Time'],index_col = ['Time'])
+    logs.append(boulder)
+    # just for checking and testing, to be removed in future
+    #print(logs[i].dtypes)
 
 
-    for i in range(len(logs)):
-        # create the plot space upon which to plot the data
-        fig = plot.figure(i, figsize=(20,20))
-        plot.suptitle(files[i])
+timeFmt = mdates.DateFormatter('%H:%M')
+pressFmt = tick.FormatStrFormatter('%.2f')
+temp_humFmt = tick.FormatStrFormatter('%.1f')
+pmFmt = tick.FormatStrFormatter('%d')
+C=20 #TODO color on scatter plots not working now
+
+#check = []
+for i in range(len(logs)):
+    # create the plot space upon which to plot the data
+    fig = plot.figure(i, figsize=(20,20))
+    plot.suptitle(files[i])
 
 
-        ax1 = fig.add_subplot(2,2,1)
-        ax2 = fig.add_subplot(2,2,2)
-        ax3 = fig.add_subplot(2,2,3)
-        ax4 = fig.add_subplot(2,2,4)
+    ax1 = fig.add_subplot(2,2,1)
+    ax2 = fig.add_subplot(2,2,2)
+    ax3 = fig.add_subplot(2,2,3)
+    ax4 = fig.add_subplot(2,2,4)
 
 
-        # add the x-axis and the y-axis to the plot
-        ax1.plot(logs[i].index.values,
-                logs[i]['Pressure'],
-                color = 'blue')
-        ax1.scatter(logs[i].index.values,
-                    logs[i]['Pressure'], C)
+    # add the x-axis and the y-axis to the plot
+    ax1.plot(logs[i].index.values,
+            logs[i]['Pressure'],
+            color = 'blue')
+    ax1.scatter(logs[i].index.values,
+                logs[i]['Pressure'], C)
 
-        ax1.xaxis.set_major_formatter(timeFmt)
-        ax1.yaxis.set_major_formatter(pressFmt)
+    ax1.xaxis.set_major_formatter(timeFmt)
+    ax1.yaxis.set_major_formatter(pressFmt)
 
-        # rotate tick labels
-        plot.setp(ax1.get_xticklabels(), rotation=45)
+    # rotate tick labels
+    plot.setp(ax1.get_xticklabels(), rotation=45)
 
-        # set title and labels for axes
-        ax1.set(xlabel="Time",
-               ylabel="Pressure [hPa]");
-
-
-        
-
-        ax2.plot(logs[i].index.values,
-                logs[i]['Humidity'],
-                 color = 'green')
-        ax2.scatter(logs[i].index.values,
-                    logs[i]['Humidity'], C)
-
-        ax2.xaxis.set_major_formatter(timeFmt)
-        ax2.yaxis.set_major_formatter(temp_humFmt)
+    # set title and labels for axes
+    ax1.set(xlabel="Time",
+           ylabel="Pressure [hPa]");
 
 
-        # rotate tick labels
-        plot.setp(ax2.get_xticklabels(), rotation=45)
+    
 
-        # set title and labels for axes
-        ax2.set(xlabel="Time",
-               ylabel="Humidity [%]");
+    ax2.plot(logs[i].index.values,
+            logs[i]['Humidity'],
+             color = 'green')
+    ax2.scatter(logs[i].index.values,
+                logs[i]['Humidity'], C)
 
-
-        
-
-
-        ax3.plot(logs[i].index.values,
-                logs[i]['Temperature'],
-                color = 'red', label = 'Temperature')
-        ax3.plot(logs[i].index.values,
-                logs[i]['Dew_point'],
-                color = 'purple', label = 'Dew point')
-
-        ax3.scatter(logs[i].index.values,
-                    logs[i]['Temperature'], C, label = '_Temperature')
-        ax3.scatter(logs[i].index.values,
-                    logs[i]['Dew_point'], C, label = '_Dew point')
+    ax2.xaxis.set_major_formatter(timeFmt)
+    ax2.yaxis.set_major_formatter(temp_humFmt)
 
 
-        ax3.xaxis.set_major_formatter(timeFmt)
-        ax3.yaxis.set_major_formatter(temp_humFmt)
-        legend = ax3.legend(loc='upper right', shadow=True)
+    # rotate tick labels
+    plot.setp(ax2.get_xticklabels(), rotation=45)
+
+    # set title and labels for axes
+    ax2.set(xlabel="Time",
+           ylabel="Humidity [%]");
 
 
-        # rotate tick labels
-        plot.setp(ax3.get_xticklabels(), rotation=45)
-
-        # set title and labels for axes
-        ax3.set(xlabel="Time",
-               ylabel="Temperature, Dew point [C]");
+    
 
 
-        
+    ax3.plot(logs[i].index.values,
+            logs[i]['Temperature'],
+            color = 'red', label = 'Temperature')
+    ax3.plot(logs[i].index.values,
+            logs[i]['Dew_point'],
+            color = 'purple', label = 'Dew point')
 
-        ax4.plot(logs[i].index.values,
-                logs[i]['PM1'],
-                color = 'yellow', label = 'PM1')
-        ax4.plot(logs[i].index.values,
-                logs[i]['PM2.5'],
-                color = 'orange', label = 'PM2.5')
-        ax4.plot(logs[i].index.values,
-                logs[i]['PM10'],
-                color = 'chocolate', label = 'PM10')
-        
-        ax4.scatter(logs[i].index.values,
-                    logs[i]['PM1'], C, label = '_PM1')
-        ax4.scatter(logs[i].index.values,
-                    logs[i]['PM2.5'], C, label = '_PM2.5')
-        ax4.scatter(logs[i].index.values,
-                    logs[i]['PM10'], C, label = '_PM10')
+    ax3.scatter(logs[i].index.values,
+                logs[i]['Temperature'], C, label = '_Temperature')
+    ax3.scatter(logs[i].index.values,
+                logs[i]['Dew_point'], C, label = '_Dew point')
 
 
-        ax4.xaxis.set_major_formatter(timeFmt)
-        ax4.yaxis.set_major_formatter(pmFmt)
-        legend = ax4.legend(loc='upper right', shadow=True)
+    ax3.xaxis.set_major_formatter(timeFmt)
+    ax3.yaxis.set_major_formatter(temp_humFmt)
+    legend = ax3.legend( shadow=True)
 
 
-        # rotate tick labels
-        plot.setp(ax4.get_xticklabels(), rotation=45)
+    # rotate tick labels
+    plot.setp(ax3.get_xticklabels(), rotation=45)
 
-        # set title and labels for axes
-        ax4.set(xlabel="Time",
-               ylabel="PM1, PM2.5, PM10 [ug/m3]");
+    # set title and labels for axes
+    ax3.set(xlabel="Time",
+           ylabel="Temperature, Dew point [C]");
 
 
-        
-        
-        plot.subplots_adjust(top=0.92, bottom=0.08, left=0.10, right=0.95, hspace=0.25, wspace=0.35)
-        plot.show(block=False)
+    
 
-paths = getLogsList(plots_range)
-createPlots(paths)
+    l0, = ax4.plot(logs[i].index.values,
+            logs[i]['PM1'],
+            color = 'yellow', label = 'PM1')
+    l1, = ax4.plot(logs[i].index.values,
+            logs[i]['PM2.5'],
+            color = 'orange', label = 'PM2.5')
+    l2, = ax4.plot(logs[i].index.values,
+            logs[i]['PM10'],
+            color = 'chocolate', label = 'PM10')
+    
+    #s0, = ax4.scatter(logs[i].index.values,
+    #            logs[i]['PM1'], C, label = '_PM1')
+    #s1, = ax4.scatter(logs[i].index.values,
+    #            logs[i]['PM2.5'], C, label = '_PM2.5')
+    #s2, = ax4.scatter(logs[i].index.values,
+    #            logs[i]['PM10'], C, label = '_PM10')
+
+    lines = [l0, l1, l2]
+
+    # Make checkbuttons with all plotted lines with correct visibility
+    rax = plot.axes([0.5, 0.35, 0.05, 0.10])
+    labels = [str(line.get_label()) for line in lines]
+    visibility = [line.get_visible() for line in lines]
+    check = CheckButtons(rax, labels, visibility)
+    check.on_clicked(func)
+
+
+    ax4.xaxis.set_major_formatter(timeFmt)
+    ax4.yaxis.set_major_formatter(pmFmt)
+    legend = ax4.legend(shadow=True)
+
+
+    # rotate tick labels
+    plot.setp(ax4.get_xticklabels(), rotation=45)
+
+    # set title and labels for axes
+    ax4.set(xlabel="Time",
+           ylabel="PM1, PM2.5, PM10 [ug/m3]");
+
+    
+    plot.subplots_adjust(top=0.92, bottom=0.08, left=0.10, right=0.95, hspace=0.25, wspace=0.35)
+    plot.show(block=False)
+
+
+
+#createPlots(paths)
+
+
 
 input("Press Enter to exit ...")
 exit()

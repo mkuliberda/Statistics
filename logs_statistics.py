@@ -20,27 +20,38 @@ from matplotlib.widgets import CheckButtons
 
 
 plots_range = 'standard'
+log_path = ''
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--today', help='plot only todays log',
                     action='store_true')
 parser.add_argument('--yesterday', help='plot only yesterdays log',
                     action='store_true')
-parser.add_argument('--path', dest='file', required=False, help='plot only specific log', type=lambda f: open(f))# action='store_true')
-
+parser.add_argument('--path', dest='file', required=False, help='plot only specific log',
+                    type=lambda f: open(f))
 parser.add_argument('--all', help='plot all avbl logs',
                     action='store_true')
+parser.add_argument('--standard', help='plot all avbl logs with the exception of todays one',
+                    action='store_true')
+
 
 args = parser.parse_args()
 if args.today:
     plots_range = 'today'
+    
 elif args.yesterday:
     plots_range = 'yesterday'
-elif args.file.name is not None:
-    print(args.file.name)  # name of the file from the file handle
-    plots_range = 'yesterday'
+    
 elif args.all:
     plots_range = 'all'
+
+elif args.standard:
+    plots_range = 'standard'
+
+elif args.file.name is not None:
+    log_path = args.file.name
+    plots_range = 'path'
+    
 
 
 
@@ -48,34 +59,35 @@ elif args.all:
 # make figures plot inline
 plot.ion()
 
-# set standard plot parameters for uniform plotting
-#plot.rcParams['figure.figsize'] = (6, 6)
-
 sns.set(font_scale=1.1)
 sns.set_style("whitegrid")
 
-def getLogsList(plots = 'standard'):
-
-    today=datetime.now()
-    temp_list = glob.glob("/home/pi/Desktop/Environment/*.csv")
-    today_log = '/home/pi/Desktop/Environment/Environment_' + str(today.day) + '_' + str(today.month) + '_' + str(today.year) + '.csv'
-    yest_temp = datetime.now() - timedelta(days=1)
-    yesterday_log = '/home/pi/Desktop/Environment/Environment_' + str(yest_temp.day) + '_' + str(yest_temp.month) + '_' + str(yest_temp.year) + '.csv'
+def getLogsList(path, plots = 'today'):
 
     if plots == 'standard':
+        today=datetime.now()
+        temp_list = glob.glob("/home/pi/Desktop/Environment/*.csv")
+        today_log = '/home/pi/Desktop/Environment/Environment_' + str(today.day) + '_' + str(today.month) + '_' + str(today.year) + '.csv'
         if today_log in temp_list:
             temp_list.remove(today_log)
             return temp_list
         
     elif plots == 'today':
+        today=datetime.now()
+        today_log = '/home/pi/Desktop/Environment/Environment_' + str(today.day) + '_' + str(today.month) + '_' + str(today.year) + '.csv'
         return [today_log]
 
     elif plots == 'yesterday':
+        yest_temp = datetime.now() - timedelta(days=1)
+        yesterday_log = '/home/pi/Desktop/Environment/Environment_' + str(yest_temp.day) + '_' + str(yest_temp.month) + '_' + str(yest_temp.year) + '.csv'
         return [yesterday_log]
 
-    
     elif plots == 'all':
+        temp_list = glob.glob("/home/pi/Desktop/Environment/*.csv")
         return temp_list
+
+    elif plots == 'path':
+        return [path]
 
 def func(label):
     index = labels.index(label)
@@ -83,7 +95,7 @@ def func(label):
     plot.draw()
 
 
-files = getLogsList(plots_range)
+files = getLogsList(log_path, plots_range)
 
 #def createPlots(files):
 

@@ -27,6 +27,8 @@ parser.add_argument('--today', help='plot only todays log',
                     action='store_true')
 parser.add_argument('--yesterday', help='plot only yesterdays log',
                     action='store_true')
+parser.add_argument('--image', help='generate image with todays plots',
+                    action='store_true')
 parser.add_argument('--path', dest='file', required=False, help='plot only specific log',
                     type=lambda f: open(f))
 parser.add_argument('--all', help='plot all avbl logs',
@@ -44,6 +46,9 @@ elif args.yesterday:
     
 elif args.all:
     plots_range = 'all'
+
+elif args.image:
+    plots_range = 'image'
 
 elif args.standard:
     plots_range = 'standard'
@@ -76,6 +81,12 @@ def getLogsList(path, plots = 'today'):
         today=datetime.now()
         today_log = '/home/pi/Desktop/Environment/Environment_' + str(today.day) + '_' + str(today.month) + '_' + str(today.year) + '.csv'
         return [today_log]
+
+    elif plots == 'image':
+        today=datetime.now()
+        today_log = '/home/pi/Desktop/Environment/Environment_' + str(today.day) + '_' + str(today.month) + '_' + str(today.year) + '.csv'
+        return [today_log]
+
 
     elif plots == 'yesterday':
         yest_temp = datetime.now() - timedelta(days=1)
@@ -237,14 +248,17 @@ for i in range(len(logs)):
 
     
     plot.subplots_adjust(top=0.92, bottom=0.08, left=0.10, right=0.95, hspace=0.25, wspace=0.35)
-    plot.show(block=False)
+    if plots_range == 'image':
+        plot.savefig('/home/pi/Desktop/Environment/plots.jpg')
+    else:
+        plot.show(block=False)
 
 
 
 #createPlots(paths)
 
 
-
-input("Press Enter to exit ...")
+if plots_range != 'image':
+    input("Press Enter to exit ...")
 exit()
 

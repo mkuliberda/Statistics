@@ -10,4 +10,4 @@ usage: python3 logs_statistics.py</br>
 --standard	-> process all avbl logs with the exception of today's log</br>
 --image		-> generate image with today's plots</br>
 
-[GeneratedPlots](plots.jpg)
+![ExamplePlots](plots.jpg)

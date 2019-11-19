@@ -178,7 +178,6 @@ for i in range(len(logs)):
 
     
 
-
     ax3.plot(logs[i].index.values,
             logs[i]['Temperature'],
             color = 'red', label = 'Temperature')
@@ -195,6 +194,22 @@ for i in range(len(logs)):
     ax3.xaxis.set_major_formatter(timeFmt)
     ax3.yaxis.set_major_formatter(temp_humFmt)
     legend = ax3.legend( shadow=True)
+
+    try:
+        tempMax = {'position' : None , 'value' : None}
+        tempMin = {'position' : None , 'value' : None}
+
+        tempMax['value'] = logs[i]['Temperature'].max()
+        tempMax['position'] = logs[i]['Temperature'].idxmax()
+
+        tempMin['value'] = logs[i]['Temperature'].min()
+        tempMin['position'] = logs[i]['Temperature'].idxmin()
+
+        ax3.annotate('Max:{:01}'.format(tempMax['value']), xy=(tempMax['position'], tempMax['value']), arrowprops=dict(facecolor='red'))
+        ax3.annotate('Min:{:01}'.format(tempMin['value']), xy=(tempMin['position'], tempMin['value']), xytext=(tempMin['position'],tempMin['value']-1), arrowprops=dict(facecolor='blue'))
+
+    except:
+        print("Error: couldn't annotate plot with max and/or min value")
 
 
     # rotate tick labels

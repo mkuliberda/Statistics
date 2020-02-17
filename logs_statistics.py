@@ -1,17 +1,11 @@
 #!/usr/bin/python
 # import necessary packages
 import numpy as np
-import os
 import pandas as pd
 import matplotlib.pyplot as plot
 import argparse
-import sys
 import glob
 from datetime import datetime, timedelta
-import time
-import matplotlib
-import csv
-from pathlib import Path
 # prettier plotting with seaborn
 import seaborn as sns;
 import matplotlib.dates as mdates
